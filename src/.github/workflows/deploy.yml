@@ -1,0 +1,61 @@
+name: CI/CD (Build & Deploy to Vercel)
+ 
+on:
+
+  push:
+
+    branches: [ "main" ]   # เมื่อ push เข้าสาขา main จะ deploy อัตโนมัติ
+
+  workflow_dispatch:       # กด run เองได้จาก GitHub Actions
+ 
+jobs:
+
+  build_and_deploy:
+
+    runs-on: ubuntu-latest
+ 
+    steps:
+
+      - name: ⤵️ Checkout Repo
+
+        uses: actions/checkout@v4
+ 
+      - name: 🔧 Setup Node
+
+        uses: actions/setup-node@v4
+
+        with:
+
+          node-version: 18
+
+          cache: 'npm'
+ 
+      - name: 📦 Install Dependencies
+
+        run: npm ci
+ 
+      - name: 🧪 Typecheck
+
+        run: npx tsc -b || true
+ 
+      - name: 🧹 Lint (optional)
+
+        run: npm run lint || true
+ 
+      - name: ⬇️ Install Vercel CLI
+
+        run: npm i -g vercel@latest
+ 
+      - name: 🔐 Pull Vercel Project Settings
+
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+ 
+      - name: 🏗️ Build Project
+
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+ 
+      - name: 🚀 Deploy to Vercel
+
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+ 
